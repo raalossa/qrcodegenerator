@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar y Leer QR con Formulario</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+</head>
+<body>
+  <h2>Formulario para Generar Código QR</h2>
+  <form id="dataForm">
+    <label for="name">Nombre:</label>
+    <input type="text" id="name" required><br><br>
+
+    <label for="lastname">Apellidos:</label>
+    <input type="text" id="lastname" required><br><br>
+
+    <label for="idNumber">Documento de Identidad:</label>
+    <input type="text" id="idNumber" required><br><br>
+
+    <label for="address">Dirección:</label>
+    <input type="text" id="address" required><br><br>
+
+    <label for="city">Ciudad:</label>
+    <input type="text" id="city" required><br><br>
+
+    <label for="phone">Teléfono:</label>
+    <input type="text" id="phone" required><br><br>
+
+    <label for="email">E-mail:</label>
+    <input type="email" id="email" required><br><br>
+
+    <button type="button" onclick="generateQRCode()">Generar Código QR</button>
+  </form>
+
+  <div id="qrcode" style="margin-top: 20px;"></div>
+
+  <h2>Escanear Código QR</h2>
+  <video id="video" width="300" height="300" style="border: 1px solid black"></video>
+  <button onclick="startScan()">Iniciar Escaneo de QR</button>
+
+  <script>
+    // Función para generar el código QR
+    function generateQRCode() {
+      const name = document.getElementById('name').value;
+      const lastname = document.getElementById('lastname').value;
+      const idNumber = document.getElementById('idNumber').value;
+      const address = document.getElementById('address').value;
+      const city = document.getElementById('city').value;
+      const phone = document.getElementById('phone').value;
+      const email = document.getElementById('email').value;
+
+      // Objeto con los datos del formulario
+      const formData = {
+        na: name,
+        lna: lastname,
+        id: idNumber,
+        ad: address,
+        ci: city,
+        ph: phone,
+        em: email
+      };
+
+      // Convertir el objeto a JSON
+      const jsonData = JSON.stringify(formData);
+
+      // Generar el código QR con los datos
+      document.getElementById('qrcode').innerHTML = ""; // Limpiar el QR anterior
+      new QRCode(document.getElementById("qrcode"), jsonData);
+    }
+
+    // Función para escanear el código QR
+    function startScan() {
+      const video = document.getElementById('video');
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        setInterval(() => {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, canvas.width, canvas.height);
+          
+          if (code) {
+            console.log('Código QR Decodificado:', code.data);
+            const qrData = JSON.parse(code.data);
+            console.log('Datos en formato JSON:', qrData);
+          }
+        }, 1000);
+      });
+    }
+  </script>
+</body>
+</html>
